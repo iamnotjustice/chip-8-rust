@@ -6,6 +6,7 @@ use rand::Rng;
 use std::env;
 
 const FONT_OFFSET: usize = 0x050;
+const WINDOW_SCALING_FACTOR: f64 = 8.0;
 
 struct CPU {
     delay_timer: u8,
@@ -442,9 +443,12 @@ impl CPU {
 
 // TODO: two OPCODES are broken (F55 & F33) and input-based OPCODES are not yet implemented.
 fn main() {
-    let (width, height) = (64, 32);
+    let (width, height) = (64.0, 32.0);
 
-    let window: PistonWindow = WindowSettings::new("chip8", [width * 4, height * 4])
+    let window: PistonWindow = WindowSettings::new("chip8", [
+        width * WINDOW_SCALING_FACTOR,
+        height * WINDOW_SCALING_FACTOR,
+    ])
         .exit_on_esc(true)
         .build()
         .expect("could not create window");
@@ -580,17 +584,17 @@ fn handle_window(cpu: &mut CPU) -> Option<Event> {
             cpu.window.draw_2d(event, |ctx, renderer, _device| {
                 clear([0.15, 0.17, 0.17, 0.9], renderer);
 
-                for x in (0..64 * 4).step_by(4) {
-                    for y in (0..32 * 4).step_by(4) {
+                for x in (0..64 * (WINDOW_SCALING_FACTOR as usize)).step_by(4) {
+                    for y in (0..32 * (WINDOW_SCALING_FACTOR as usize)).step_by(4) {
                         let size = [f64::from((x as i32) + 4), f64::from((y as i32) + 4), 4.0, 4.0];
 
+                        // chip8 pixel has two states: on and off. We store it as 1 and 0.
+                        // 1 is white, 0 is black.
+                        let pixel_on = cpu.display[y / (WINDOW_SCALING_FACTOR as usize)]
+                            [x / (WINDOW_SCALING_FACTOR as usize)] as f32;
+
                         rectangle(
-                            [
-                                cpu.display[y / 4][x / 4] as f32,
-                                cpu.display[y / 4][x / 4] as f32,
-                                cpu.display[y / 4][x / 4] as f32,
-                                cpu.display[y / 4][x / 4] as f32,
-                            ],
+                            [pixel_on, pixel_on, pixel_on, pixel_on],
                             size,
                             ctx.transform,
                             renderer
