@@ -442,6 +442,7 @@ impl CPU {
 }
 
 // TODO: two OPCODES are broken (F55 & F33) and input-based OPCODES are not yet implemented.
+// Also it seems like 8xyE operation has broken carry flag.
 fn main() {
     let (width, height) = (64.0, 32.0);
 
@@ -573,7 +574,7 @@ fn main() {
     // TODO: decouple CPU opcode runs from window refreshes
     // and add separate refresh control for both.
     while let Some(_) = handle_window(&mut cpu) {
-        cpu.iter(true);
+        cpu.iter(false);
     }
 }
 
